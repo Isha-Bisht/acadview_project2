@@ -19,6 +19,8 @@ def get_own_post(): #function defined to see ur own post
             print "post doesn't exist"
     else:
         print "code other than 200 recieved"
+
+
 def get_user_id(insta_username):  #function defined to take the user id
     request_url=(base_url+'users/search?q=%s&access_token=%s')%(insta_username, app_access_token)
     print 'GET request url:%s' %(request_url)
@@ -91,23 +93,24 @@ def get_user_info(insta_username): #function defined to get the user details
     else:
         print "status code other than 200 is received"
 
-def get_post_id(insta_username): #fucntion declared to get the ID of the recent post of a user by usernam
-    user_id=get_user_id(insta_username)
-    if user_id==None:
-        print "user doesn't exist"
+def get_post_id(insta_username):
+    user_id = get_user_id(insta_username)
+    if user_id == None:
+        print 'User does not exist!'
         exit()
-        request_url=(base_url+ 'users/%s/media/recent/?access_token=%s')%(user_id, app_access_token)
-        print "get request url:%s" %(request_url)
-        user_media=requests.get(request_url).json()
-        if user_media['meta']['code'] == 200:
-            if len(user_media['data']):
-                return user_media['data'][0]['id']
-            else:
-                print 'There is no recent post of the user!'
-                exit()
+    request_url = (base_url + 'users/%s/media/recent/?access_token=%s') % (user_id, app_access_token)
+    print 'GET request url : %s' % (request_url)
+    user_media = requests.get(request_url).json()
+
+    if user_media['meta']['code'] == 200:
+        if len(user_media['data']):
+            return user_media['data'][0]['id']
         else:
-            print 'Status code other than 200 received!'
+            print 'There is no recent post of the user!'
             exit()
+    else:
+        print 'Status code other than 200 received!'
+        exit()
 
 def like_a_post(insta_username):  #function defined to like the recent post of a user
     media_id=get_post_id(insta_username)
@@ -123,7 +126,7 @@ def like_a_post(insta_username):  #function defined to like the recent post of a
 def post_a_comment(insta_username):  #function defined to make a comment on the recent post of the user
     media_id=get_post_id(insta_username)
     comment_text=raw_input("your comment:")
-    payload={"access token":app_access_token, "text":comment_text}
+    payload={"access_token":app_access_token, "text":comment_text}
     request_url=(base_url+'media/%s/comments')%(media_id)
     print "POST request url%s" %(request_url)
     make_comment=requests.post(request_url, payload).json()
@@ -161,6 +164,26 @@ def delete_negative_comment(insta_username):  #function defined to make delete n
     else:
         print 'Status code other than 200 received!'
 
+def get_like_list(insta_username):
+    media_id=get_post_id(insta_username)
+    if media_id==None:
+        print "sorry ur media id is empty"
+        exit()
+    else:
+        request_url=(base_url+'media/%s/likes?access_token=%s')%(media_id,app_access_token)
+        user_media=requests.get(request_url).json()
+        count=0
+        if user_media['meta']['code']==200:
+            if len(user_media['data']):
+                for users in range(0, len(user_media['data'])):
+                    print "%d.%s" %(count+1, user_media['data'][users]['username'])
+                    count=count+1
+                    print "no.of likes %d" %(count)
+            else:
+                print "this user doesn't exist"
+        else:
+            print "status code other than 200 recieved"
+
 
 def start_bot():  #to choose the action from the given menu
     while True:
@@ -173,7 +196,7 @@ def start_bot():  #to choose the action from the given menu
         print "d.> get the recent post of the user by entering their name" #choice4 in the menuc
         print "e.> Get a list of people who have liked the recent post of a user\n"
         print "f.> like the recent post of a user\n" #choice5 in the menu
-        print "g.> Get a list of comments on the recent post of a user\n"
+        #print "g.> Get a list of comments on the recent post of a user\n"
         print "h.> Make a comment on the recent post of a user\n"  #choice6 in the menu
         print "i.> Delete negative comments from the recent post of a user\n" #choice7 in the menu
         print "j.Exit"
@@ -188,9 +211,9 @@ def start_bot():  #to choose the action from the given menu
         elif choice=="d":
             insta_username=raw_input("enter the username:")
             get_user_post(insta_username)
-       #choice=="e":
-            #insta_username=raw_input("enter the name of the user")
-            #get_like_list(insta_username)
+        elif choice=="e":
+            insta_username=raw_input("enter the name of the user")
+            get_like_list(insta_username)
         elif choice=="f":
             insta_username=raw_input("enter the name of the user")
             like_a_post(insta_username)
