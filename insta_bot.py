@@ -158,10 +158,6 @@ def target_comment(insta_username): #targeted comments based on captions
         print "code other than 200 recieved"
 
 
-
-
-
-
 def delete_negative_comment(insta_username):  #function defined to make delete negative comments from the recent post
     media_id=get_post_id(insta_username)
     request_url=(base_url+'media/%s/comments/?access_token=%s')%(media_id, app_access_token)
