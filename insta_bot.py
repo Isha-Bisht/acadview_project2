@@ -135,28 +135,36 @@ def post_a_comment(insta_username):  #function defined to make a comment on the 
     else:
         print "Unable to add comment. Try again!"
 
-def target_comment(insta_username): #targeted comments based on captions
-    user_id=get_user_id(insta_username)
-    request_url=(base_url+'users/%s/media/recent/?access_token=%s')%(user_id, app_access_token)
-    print 'GET request url : %s' % (request_url)
-    user_media = requests.get(request_url).json()
-    if user_media['meta']['code'] == 200:
-        if user_media['data'][0]['caption']['text']=='Style':
-            media_id = get_post_id(insta_username)
-            request_url2=(base_url+'media/%s/comments')%(media_id)
-            comment_text="give the cool, traditional, classy style to urself"
-            payload={"access_token":app_access_token, "text":comment_text}
-            print "POST request url%s" % (request_url)
-            make_comment = requests.post(request_url2, payload).json()
-            if make_comment['meta']['code'] == 200:
-                print "Successfully added a new comment!"
-            else:
-                print "Unable to add comment. Try again!"
+def target_comment(): #targeted comments based on captions
+    lat=30.7333
+    long=76.7794
+    request_url3=(base_url+'media/search?lat=%f&lng=%f&access_token=%s&distance=5000') %(lat, long, app_access_token)
+    print 'GET request url : %s' % (request_url3)
+    location=requests.get(request_url3).json()
+    if location['meta']['code']==200:
+        if len(location["data"]):
+            keyword="#cute"
+            comment_text="you can give cute, stylish luks to yourself"
+            comment=comment_text.split(" ")
+            for ids in range(0, len(location["data"])):
+                caption_text=str(location["data"][ids]["caption"]["text"])
+                comment=caption_text.split(" ")
+                if keyword in comment:
+                    media_id=location["data"][ids]["id"]
+                    payload = {"access_token": app_access_token, "text": comment_text}
+                    request_url = (base_url + 'media/%s/comments') % (media_id)
+                    print "POST request url%s" % (request_url)
+                    make_comment = requests.post(request_url, payload).json()
+                    if make_comment['meta']['code'] == 200:
+                        print "Successfully added a new comment!"
+                    else:
+                        print "Unable to add comment. Try again!"
+                else:
+                    print "this keyword is not there in the post"
         else:
-            print "sorry there is no word matches to your specific word"
+            print "no data present"
     else:
         print "code other than 200 recieved"
-
 
 def delete_negative_comment(insta_username):  #function defined to make delete negative comments from the recent post
     media_id=get_post_id(insta_username)
@@ -219,7 +227,7 @@ def start_bot():  #to choose the action from the given menu
         print "d.> get the recent post of the user by entering their name" #choice4 in the menuc
         print "e.> Get a list of people who have liked the recent post of a user\n"
         print "f.> like the recent post of a user\n" #choice5 in the menu
-        print "g.> Get a list of tags having name is feeling on the recent post of a user\n"
+        print "g.> make targeted comments basedb on captions\n"
         print "h.> Make a comment on the recent post of a user\n"  #choice6 in the menu
         print "i.> Delete negative comments from the recent post of a user\n" #choice7 in the menu
         print "j.Exit"
@@ -241,8 +249,7 @@ def start_bot():  #to choose the action from the given menu
             insta_username=raw_input("enter the name of the user")
             like_a_post(insta_username)
         elif choice=="g":
-            insta_username=raw_input("enter the name of the user")
-            target_comment(insta_username)
+            target_comment()
         elif choice=="h":
             insta_username = raw_input("enter the name of the user")
             post_a_comment(insta_username)
